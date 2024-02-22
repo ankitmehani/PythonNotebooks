@@ -1,0 +1,25 @@
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import udf
+from pyspark.sql.types import StringType
+
+# Initialize Spark session
+spark = SparkSession.builder.appName("SentimentAnalysis").getOrCreate()
+
+# Read the unified dataset in Parquet format
+combined_data = spark.read.parquet("hdfs://path/to/combined_data.parquet")
+
+# Define a UDF for sentiment analysis (replace with your actual sentiment analysis logic)
+def analyze_sentiment(text):
+    # Your sentiment analysis logic here
+    return "Positive"  # Replace with "Negative" or "Neutral" based on analysis
+
+sentiment_udf = udf(analyze_sentiment, StringType())
+
+# Apply sentiment analysis using the UDF
+result_df = combined_data.withColumn("Sentiment", sentiment_udf(combined_data["Text"]))
+
+# Perform further analysis or save the results
+result_df.show()
+
+# Stop the Spark session
+spark.stop()
