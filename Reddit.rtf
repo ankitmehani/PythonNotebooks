@@ -1,0 +1,69 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2759
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 import praw\
+from nltk.sentiment import SentimentIntensityAnalyzer\
+import matplotlib.pyplot as plt\
+from wordcloud import WordCloud\
+\
+# Reddit API credentials\
+client_id = 'YOUR_CLIENT_ID'\
+client_secret = 'YOUR_CLIENT_SECRET'\
+user_agent = 'YOUR_USER_AGENT'\
+username = 'YOUR_REDDIT_USERNAME'\
+password = 'YOUR_REDDIT_PASSWORD'\
+\
+# Authenticate with Reddit API\
+reddit = praw.Reddit(client_id=client_id, client_secret=client_secret, user_agent=user_agent, username=username, password=password)\
+\
+# Specify the subreddit and search query\
+subreddit_name = "openai"\
+search_query = "OpenAI"\
+\
+# Fetch posts from the subreddit\
+subreddit = reddit.subreddit(subreddit_name)\
+posts = subreddit.search(search_query, limit=10)  # Adjust the limit as needed\
+\
+# Initialize sentiment analyzer\
+sia = SentimentIntensityAnalyzer()\
+\
+# Analyze sentiments and collect comments\
+sentiments = []\
+comments_text = []\
+\
+for post in posts:\
+    submission = reddit.submission(id=post.id)\
+    submission.comments.replace_more(limit=None)\
+    \
+    for comment in submission.comments.list():\
+        comments_text.append(comment.body)\
+        sentiment_score = sia.polarity_scores(comment.body)\
+        sentiment = "Positive" if sentiment_score['compound'] > 0 else "Negative" if sentiment_score['compound'] < 0 else "Neutral"\
+        sentiments.append(sentiment)\
+\
+# Plot Pie Chart\
+sentiment_counts = \{"Positive": sentiments.count("Positive"), "Negative": sentiments.count("Negative"), "Neutral": sentiments.count("Neutral")\}\
+labels = list(sentiment_counts.keys())\
+sizes = list(sentiment_counts.values())\
+\
+fig, ax = plt.subplots()\
+ax.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=90)\
+ax.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.\
+\
+plt.title("Sentiment Analysis on Reddit for OpenAI")\
+plt.show()\
+\
+# Generate Word Cloud\
+comment_text = ' '.join(comments_text)\
+wordcloud = WordCloud(width=800, height=400, background_color='white').generate(comment_text)\
+\
+plt.figure(figsize=(10, 5))\
+plt.imshow(wordcloud, interpolation='bilinear')\
+plt.axis('off')\
+plt.title("Word Cloud for OpenAI Reddit Comments")\
+plt.show()\
+}
